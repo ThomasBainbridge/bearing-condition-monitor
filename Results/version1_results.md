@@ -166,9 +166,3 @@ These results should be interpreted as strong benchmark performance on a control
 
 ## Suggested Use of This Document
 
-This Version 1 results summary can be used as:
-
-- a project report appendix
-- a GitHub companion document
-- supporting text for a portfolio page
-- a basis for a future Version 2 comparison document
