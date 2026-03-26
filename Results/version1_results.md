@@ -137,6 +137,8 @@ Its confusion matrix showed:
 - normal: 116 correctly classified, 1 misclassified as ball
 - outer race: 117 correctly classified
 
+![Logistic Regression Confusion Matrix](../reports/figures/confusion_matrix_logreg.png)
+
 So Logistic Regression made only one classification error on the held-out test set.
 
 ### Random Forest
