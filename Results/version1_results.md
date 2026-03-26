@@ -60,6 +60,14 @@ Version 1 used the following engineered vibration features:
 
 These features were chosen to capture both amplitude-based and impulsive characteristics of vibration signals, along with a simple frequency-domain descriptor.
 
+## Signal Comparison Example
+
+Before model training, the vibration signals were compared in the frequency domain to confirm that healthy and faulty bearings showed meaningful differences in spectral behaviour.
+
+![FFT Comparison: Normal vs Inner Race Fault](../reports/figures/fft_normal_vs_inner.png)
+
+This FFT comparison shows that the healthy and faulty signals differ not only in amplitude behaviour but also in frequency content, supporting the use of engineered diagnostic features for classification.
+
 ## Models Evaluated
 
 Two classifiers were tested in Version 1:
@@ -97,6 +105,8 @@ Random Forest achieved an accuracy of 1.000000.
 
 Its confusion matrix showed perfect classification across all four classes, with all 468 test samples correctly identified.
 
+![Random Forest Confusion Matrix](../reports/figures/confusion_matrix_rf.png)
+
 ## Leave-One-Load-Out Validation
 
 To make the validation stronger, Version 1 also used leave-one-load-out testing. In this setup, each operating load was held out in turn as the test condition, while the remaining three loads were used for training.
@@ -107,6 +117,8 @@ The mean accuracies across the four folds were:
 - Random Forest: 1.000000
 
 This is an important result because it shows that the Random Forest classifier remained perfectly accurate even when tested repeatedly on unseen operating loads.
+
+![Leave-One-Load-Out Accuracy](../reports/figures/leave_one_load_out_accuracy.png)
 
 ## Feature Importance Results
 
@@ -122,6 +134,8 @@ Feature-importance analysis was carried out using the trained Random Forest mode
 8. Impulse factor — 0.022568
 9. Crest factor — 0.012750
 10. Skewness — 0.010370
+
+![Random Forest Feature Importance](../reports/figures/rf_feature_importance.png)
 
 ## Engineering Interpretation
 
@@ -158,4 +172,3 @@ This Version 1 results summary can be used as:
 - a GitHub companion document
 - supporting text for a portfolio page
 - a basis for a future Version 2 comparison document
-

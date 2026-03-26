@@ -107,6 +107,8 @@ The Version 1 feature set includes:
 
 These were selected because they are standard vibration diagnostics features and have clear engineering interpretation.
 
+Version 1 results can be seen in docs/version1_results.md
+
 ## Project Structure
 
 ```text
