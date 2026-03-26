@@ -8,26 +8,22 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from bcmonitor.features import get_feature_columns
 
 
-DEFAULT_FEATURE_COLUMNS = [
-    "mean",
-    "std",
-    "rms",
-    "peak_to_peak",
-    "crest_factor",
-    "shape_factor",
-    "impulse_factor",
-    "clearance_factor",
-    "skewness",
-    "kurtosis",
-    "dominant_frequency",
-]
-
+BASELINE_FEATURE_COLUMNS = get_feature_columns("baseline")
+ENHANCED_FEATURE_COLUMNS = get_feature_columns("enhanced")
+DEFAULT_FEATURE_COLUMNS = BASELINE_FEATURE_COLUMNS.copy()
 
 def add_load_id_column(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    df["load_id"] = df["source_file"].str.extract(r"_(\d)\.mat$").astype(int)
+
+    if "load_id" in df.columns and df["load_id"].notna().all():
+        df["load_id"] = df["load_id"].astype(int)
+        return df
+
+    extracted_loads = df["source_file"].str.extract(r"_(\d)\.mat$").astype(int)
+    df["load_id"] = extracted_loads.iloc[:, 0]
     return df
 
 
