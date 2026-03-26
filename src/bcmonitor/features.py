@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
+
+from bcmonitor.data_loader import load_cwru_file
+from bcmonitor.preprocessing import segment_signal
 
 
 def rms(signal: np.ndarray) -> float:
@@ -77,3 +83,68 @@ def extract_basic_features(signal: np.ndarray, sample_rate: float) -> dict[str, 
         "kurtosis": kurtosis(signal),
         "dominant_frequency": dominant_frequency(signal, sample_rate),
     }
+
+
+def extract_feature_table_from_signal(
+    signal: np.ndarray,
+    sample_rate: float,
+    label: str,
+    source_file: str,
+    window_size: int = 2048,
+    step_size: int = 1024,
+) -> pd.DataFrame:
+    windows = segment_signal(signal, window_size=window_size, step_size=step_size)
+
+    rows = []
+    for i, window in enumerate(windows):
+        row = {
+            "label": label,
+            "source_file": source_file,
+            "window_id": i,
+            **extract_basic_features(window, sample_rate),
+        }
+        rows.append(row)
+
+    return pd.DataFrame(rows)
+
+
+def build_feature_table(
+    file_specs: list[dict],
+    sample_rate: float = 12000.0,
+    window_size: int = 2048,
+    step_size: int = 1024,
+) -> pd.DataFrame:
+    """
+    Build a feature table from multiple raw .mat files.
+
+    file_specs example:
+    [
+        {"file_name": "normal_0.mat", "label": "normal"},
+        {"file_name": "ir007_0.mat", "label": "inner_race"},
+    ]
+    """
+    project_root = Path(__file__).resolve().parents[2]
+    raw_dir = project_root / "data" / "raw"
+
+    tables = []
+
+    for spec in file_specs:
+        file_name = spec["file_name"]
+        label = spec["label"]
+
+        bearing_signal = load_cwru_file(raw_dir / file_name, sample_rate=sample_rate)
+
+        table = extract_feature_table_from_signal(
+            signal=bearing_signal.signal,
+            sample_rate=sample_rate,
+            label=label,
+            source_file=file_name,
+            window_size=window_size,
+            step_size=step_size,
+        )
+        tables.append(table)
+
+    if not tables:
+        return pd.DataFrame()
+
+    return pd.concat(tables, ignore_index=True)
