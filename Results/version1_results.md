@@ -2,7 +2,9 @@
 
 ## Purpose
 
-This document summarises the results obtained for Version 1 of the Bearing Condition Monitor project. Version 1 was developed as a vibration-based bearing fault diagnosis pipeline using engineered signal features and classical machine learning on a controlled subset of the CWRU bearing dataset.
+This document summarises the results from Version 1 of the Bearing Condition Monitor project.
+
+Version 1 was built as a vibration-based bearing fault diagnosis pipeline using engineered signal features and classical machine learning on a controlled subset of the CWRU bearing dataset.
 
 ## Version 1 Scope
 
@@ -20,11 +22,13 @@ The analysis used 12 kHz drive-end vibration data and a controlled 16-file subse
 - 4 ball fault files
 - 4 outer race fault files
 
-All faulty cases used the 0.007 inch fault diameter configuration, and the selected files covered four operating loads: 0, 1, 2, and 3 HP.
+All faulty cases used the 0.007 inch fault diameter setup, and the selected files covered four operating loads: 0, 1, 2, and 3 HP.
 
 ## Dataset Construction
 
-The raw signals were segmented into overlapping windows and converted into engineered feature vectors. The initial feature table contained 3064 samples, but the class distribution was imbalanced because the normal files were longer and therefore produced more windows.
+The raw vibration signals were segmented into overlapping windows and then converted into engineered feature vectors.
+
+The initial feature table contained 3064 samples, but the class distribution was imbalanced because the normal files were longer and therefore produced more windows than the faulty files.
 
 Initial class counts were:
 
@@ -33,14 +37,14 @@ Initial class counts were:
 - Outer race: 471
 - Ball: 469
 
-To remove this imbalance, the dataset was balanced by sampling the same number of windows from each source file. The shortest file contributed 117 windows, so Version 1 used:
+To deal with this, the dataset was balanced by sampling the same number of windows from each source file. The shortest file contributed 117 windows, so Version 1 used:
 
 - 117 windows per source file
-- 16 source files total
+- 16 source files in total
 - 1872 samples overall
 - 468 samples per class
 
-This balanced dataset was used for training and validation.
+This balanced dataset was then used for training and validation.
 
 ## Engineered Features
 
@@ -58,15 +62,49 @@ Version 1 used the following engineered vibration features:
 - Kurtosis
 - Dominant frequency
 
-These features were chosen to capture both amplitude-based and impulsive characteristics of vibration signals, along with a simple frequency-domain descriptor.
+These features were chosen because they capture things like vibration energy, amplitude variation, impulsive behaviour, waveform shape, and basic frequency content.
 
-## Signal Comparison Example
+## Signal Characterisation
 
-Before model training, the vibration signals were compared in the frequency domain to confirm that healthy and faulty bearings showed meaningful differences in spectral behaviour.
+Before training the models, the raw vibration signals were inspected in the time and frequency domains to check that the healthy and faulty cases actually showed meaningful differences.
+
+### Raw Signal Comparisons
+
+The raw time-history plots show that the faulty signals differ from the healthy baseline in both amplitude behaviour and waveform shape.
+
+![Raw Signal Comparison: Normal vs Inner Race Fault](../reports/figures/raw_normal_vs_inner.png)
+
+![Raw Signal Comparison: Normal vs Ball Fault](../reports/figures/raw_normal_vs_ball.png)
+
+![Raw Signal Comparison: Normal vs Outer Race Fault](../reports/figures/raw_normal_vs_outer.png)
+
+These plots give a first indication that the faulty bearing cases contain different vibration behaviour from the normal case.
+
+### FFT Comparisons
+
+The FFT plots show that the healthy and faulty signals also differ in frequency content.
 
 ![FFT Comparison: Normal vs Inner Race Fault](../reports/figures/fft_normal_vs_inner.png)
 
-This FFT comparison shows that the healthy and faulty signals differ not only in amplitude behaviour but also in frequency content, supporting the use of engineered diagnostic features for classification.
+![FFT Comparison: Normal vs Ball Fault](../reports/figures/fft_normal_vs_ball.png)
+
+![FFT Comparison: Normal vs Outer Race Fault](../reports/figures/fft_normal_vs_outer.png)
+
+This is useful because it shows that the fault information is not just visible in the raw signal amplitude, but also in how the vibration energy is distributed across frequency.
+
+### Spectrogram Comparisons
+
+The spectrograms give a time-frequency view of the signals and show how the energy content changes over time for each condition.
+
+![Spectrogram: Normal](../reports/figures/spectrogram_normal.png)
+
+![Spectrogram: Inner Race Fault](../reports/figures/spectrogram_inner.png)
+
+![Spectrogram: Ball Fault](../reports/figures/spectrogram_ball.png)
+
+![Spectrogram: Outer Race Fault](../reports/figures/spectrogram_outer.png)
+
+Taken together, the raw signals, FFTs, and spectrograms show that the selected classes have clear physical differences before any machine learning is even applied.
 
 ## Models Evaluated
 
@@ -75,7 +113,9 @@ Two classifiers were tested in Version 1:
 - Logistic Regression
 - Random Forest
 
-Logistic Regression was used as a simple linear baseline. Random Forest was used as a stronger nonlinear model and also allowed feature-importance analysis.
+Logistic Regression was used as a simple linear baseline.
+
+Random Forest was used as a stronger nonlinear model and also allowed feature-importance analysis.
 
 ## Held-Out Load Test Results
 
@@ -90,14 +130,14 @@ The train/test split contained:
 
 Logistic Regression achieved an accuracy of 0.997863.
 
-Its confusion matrix was:
+Its confusion matrix showed:
 
 - ball: 117 correctly classified
 - inner race: 117 correctly classified
 - normal: 116 correctly classified, 1 misclassified as ball
 - outer race: 117 correctly classified
 
-This means Logistic Regression made only one classification error on the held-out test set.
+So Logistic Regression made only one classification error on the held-out test set.
 
 ### Random Forest
 
@@ -106,6 +146,8 @@ Random Forest achieved an accuracy of 1.000000.
 Its confusion matrix showed perfect classification across all four classes, with all 468 test samples correctly identified.
 
 ![Random Forest Confusion Matrix](../reports/figures/confusion_matrix_rf.png)
+
+This confirms that the Random Forest model separated all four conditions cleanly on the held-out-load test.
 
 ## Leave-One-Load-Out Validation
 
@@ -119,6 +161,8 @@ The mean accuracies across the four folds were:
 This is an important result because it shows that the Random Forest classifier remained perfectly accurate even when tested repeatedly on unseen operating loads.
 
 ![Leave-One-Load-Out Accuracy](../reports/figures/leave_one_load_out_accuracy.png)
+
+This plot is important because it shows that the pipeline did not just perform well on one convenient split, but stayed strong when each load was held out in turn.
 
 ## Feature Importance Results
 
@@ -137,17 +181,19 @@ Feature-importance analysis was carried out using the trained Random Forest mode
 
 ![Random Forest Feature Importance](../reports/figures/rf_feature_importance.png)
 
+This helps link the machine learning results back to the signal behaviour by showing which features were most useful for the final classification.
+
 ## Engineering Interpretation
 
-The Version 1 results indicate that the selected feature set captures the dominant differences between healthy and faulty bearing vibration signals.
+The Version 1 results show that the selected feature set captures the main differences between healthy and faulty bearing vibration signals.
 
-The highest-ranked features were RMS, standard deviation, and peak-to-peak amplitude. This suggests that overall vibration energy and amplitude spread are major sources of class separation in this benchmark.
+The highest-ranked features were RMS, standard deviation, and peak-to-peak amplitude. This suggests that overall vibration energy and amplitude spread are major reasons why the classes can be separated so well in this benchmark.
 
-Shape factor and kurtosis were also highly important. That is physically meaningful because faulty bearings often generate impulsive and non-Gaussian vibration signatures, especially when damage produces repeated impacts.
+Shape factor and kurtosis were also highly important. That makes physical sense because faulty bearings often generate more impulsive and less Gaussian vibration behaviour, especially when repeated impacts are present.
 
-Dominant frequency also contributed to the classification performance, which indicates that spectral differences between classes were present in addition to time-domain differences.
+Dominant frequency also contributed to the classification performance, which suggests that there are useful spectral differences between the classes as well as time-domain differences.
 
-The very strong Logistic Regression result shows that the engineered feature space is already highly informative. The stronger Random Forest result suggests that the remaining class boundaries are not purely linear and are better captured by a nonlinear ensemble model.
+The very strong Logistic Regression result shows that the engineered feature space is already highly informative. The even stronger Random Forest result suggests that some of the class boundaries are nonlinear and are better captured by an ensemble model.
 
 ## Overall Conclusion for Version 1
 
@@ -162,7 +208,5 @@ The main outcomes of Version 1 are:
 - perfect mean Random Forest accuracy under leave-one-load-out validation
 - physically interpretable feature-importance results
 
-These results should be interpreted as strong benchmark performance on a controlled laboratory dataset. They do not by themselves prove industrial deployment readiness, but they do show that the Version 1 pipeline is technically sound, well structured, and effective for bearing fault diagnosis under varying operating loads.
-
-## Suggested Use of This Document
+These results should be seen as strong benchmark performance on a controlled laboratory dataset. They do not on their own prove industrial deployment readiness, but they do show that the Version 1 pipeline is technically sound, well structured, and effective for bearing fault diagnosis under varying operating loads.
 
