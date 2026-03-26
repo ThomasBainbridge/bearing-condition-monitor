@@ -7,7 +7,7 @@ name = "bcmonitor"
 version = "0.1.0"
 description = "Bearing condition monitoring and fault diagnosis project"
 authors = [
-    {name = "Thomas Bainbridge"}
+    { name = "Thomas Bainbridge" }
 ]
 requires-python = ">=3.10"
 dependencies = [
@@ -20,6 +20,12 @@ dependencies = [
     "streamlit",
     "joblib"
 ]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
