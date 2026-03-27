@@ -1,0 +1,5 @@
+feature_set,model,test_load,accuracy
+baseline,logistic_regression,3,0.7521367521367521
+baseline,random_forest,3,0.9435897435897436
+enhanced,logistic_regression,3,0.9854700854700855
+enhanced,random_forest,3,0.9658119658119658
