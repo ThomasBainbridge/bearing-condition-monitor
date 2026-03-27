@@ -7,13 +7,16 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from xgboost import XGBClassifier
+
 from bcmonitor.features import get_feature_columns
 
 
 BASELINE_FEATURE_COLUMNS = get_feature_columns("baseline")
 ENHANCED_FEATURE_COLUMNS = get_feature_columns("enhanced")
 DEFAULT_FEATURE_COLUMNS = BASELINE_FEATURE_COLUMNS.copy()
+
 
 def add_load_id_column(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
@@ -65,9 +68,36 @@ def build_random_forest_model(random_state: int = 42) -> RandomForestClassifier:
     )
 
 
+def build_xgboost_model(random_state: int = 42) -> XGBClassifier:
+    return XGBClassifier(
+        n_estimators=300,
+        max_depth=6,
+        learning_rate=0.05,
+        subsample=0.9,
+        colsample_bytree=0.9,
+        reg_lambda=1.0,
+        objective="multi:softprob",
+        eval_metric="mlogloss",
+        random_state=random_state,
+        n_jobs=-1,
+    )
+
+
 def fit_model(model, X_train, y_train):
     model.fit(X_train, y_train)
     return model
+
+
+def fit_xgboost_model(model, X_train, y_train):
+    label_encoder = LabelEncoder()
+    y_train_encoded = label_encoder.fit_transform(y_train)
+    model.fit(X_train, y_train_encoded)
+    return model, label_encoder
+
+
+def predict_xgboost(model, label_encoder, X_test):
+    y_pred_encoded = model.predict(X_test)
+    return label_encoder.inverse_transform(y_pred_encoded)
 
 
 def save_model(model, file_name: str) -> Path:
